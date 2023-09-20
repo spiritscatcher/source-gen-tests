@@ -1,10 +1,11 @@
-﻿using EnumsSourceGen.Attributes;
+using EnumsSourceGen.Attributes;
 
-namespace SourceGenTestsApp;
-
-[EnumOptimized]
-public enum TestEnum
+namespace SourceGenTestsApp
 {
-	One = 1,
-	Two = 2,
+	[EnumOptimized]
+	public enum TestEnum
+	{
+		One = 1,
+		Two = 2,
+	}
 }

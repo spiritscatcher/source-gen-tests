@@ -1,5 +1,4 @@
-﻿using System;
-using EnumsSourceGen.EnumGenerators;
+using System;
 
 namespace SourceGenTestsApp
 {
@@ -8,7 +7,7 @@ namespace SourceGenTestsApp
 		static void Main(string[] args)
 		{
 			Console.WriteLine("Hello, World!");
-			Console.WriteLine(TestEnum.One.ToStringFast());
+			Console.WriteLine(TestEnum.One.ToValue());
 		}
 	}
 }

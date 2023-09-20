@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -50,8 +51,7 @@ public class EnumExtensionsGenerator : IIncrementalGenerator
 			for (var index = 0; index < attributeListSyntax.Attributes.Count; index++)
 			{
 				var attributeSyntax = attributeListSyntax.Attributes[index];
-				if (context.SemanticModel.GetSymbolInfo(attributeSyntax)
-						.Symbol is not IMethodSymbol attributeSymbol)
+				if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
 				{
 					// weird, we couldn't get the symbol, ignore it
 					continue;
@@ -74,12 +74,12 @@ public class EnumExtensionsGenerator : IIncrementalGenerator
 		return null;
 	}
 
-	private void SourceOutputRegistration(SourceProductionContext spc, (Compilation, ImmutableArray<EnumDeclarationSyntax>) source)
+	private void SourceOutputRegistration(SourceProductionContext spc, (Compilation Compiliation, ImmutableArray<EnumDeclarationSyntax> Enums) source)
 	{
-		Execute(source.Item1, source.Item2, spc);
+		Execute(source.Compiliation, source.Enums, spc);
 	}
 
-	private void Execute(Compilation compilation, ImmutableArray<EnumDeclarationSyntax> enums, SourceProductionContext context)
+	private static void Execute(Compilation compilation, ImmutableArray<EnumDeclarationSyntax> enums, SourceProductionContext context)
 	{
 		if (enums.IsDefaultOrEmpty)
 		{
@@ -91,7 +91,7 @@ public class EnumExtensionsGenerator : IIncrementalGenerator
 		IEnumerable<EnumDeclarationSyntax> distinctEnums = enums.Distinct();
 
 		// Convert each EnumDeclarationSyntax to an EnumToGenerate
-		List<EnumToGenerate> enumsToGenerate = GetTypesToGenerate(compilation, distinctEnums, context.CancellationToken);
+		List<EnumInfo> enumsToGenerate = GetTypesToGenerate(compilation, distinctEnums, context.CancellationToken);
 
 		// If there were errors in the EnumDeclarationSyntax, we won't create an
 		// EnumToGenerate for it, so make sure we have something to generate
@@ -103,10 +103,10 @@ public class EnumExtensionsGenerator : IIncrementalGenerator
 		}
 	}
 
-	private static List<EnumToGenerate> GetTypesToGenerate(Compilation compilation, IEnumerable<EnumDeclarationSyntax> enums, CancellationToken ct)
+	private static List<EnumInfo> GetTypesToGenerate(Compilation compilation, IEnumerable<EnumDeclarationSyntax> enums, CancellationToken ct)
 	{
 		// Create a list to hold our output
-		var enumsToGenerate = new List<EnumToGenerate>();
+		var enumsToGenerate = new List<EnumInfo>();
 
 		// Get the semantic representation of our marker attribute
 		INamedTypeSymbol? enumAttribute = compilation.GetTypeByMetadataName(AttributeFullName);
@@ -132,72 +132,132 @@ public class EnumExtensionsGenerator : IIncrementalGenerator
 			}
 
 			// Get the full type name of the enum e.g. Colour, or OuterClass<T>.Colour if it was nested in a generic type (for example)
-			string enumName = enumSymbol.ToString();
+			string enumName = enumSymbol.Name;
 
 			// Get all the members in the enum
 			ImmutableArray<ISymbol> enumMembers = enumSymbol.GetMembers();
-			var members = new List<string>(enumMembers.Length);
+			var members = new List<EnumValueInfo>(enumMembers.Length);
 
 			// Get all the fields from the enum, and add their name to the list
 			foreach (ISymbol member in enumMembers)
 			{
-				if (member is IFieldSymbol { ConstantValue: not null })
+				if (member is IFieldSymbol { ConstantValue: not null } memberSymbol)
 				{
-					members.Add(member.Name);
+					var memberValue = memberSymbol.IsConst
+						? memberSymbol.ConstantValue
+						: null;
+					var enumValue = new EnumValueInfo(member.Name, null, memberValue);
+					members.Add(enumValue);
 				}
 			}
 
-			// Create an EnumToGenerate for use in the generation phase
-			enumsToGenerate.Add(new EnumToGenerate(enumName, members));
+			// Create an EnumInfo for use in the generation phase
+
+			var namespaceNode = GetNameSpaceSyntax(enumDeclarationSyntax);
+			var @namespace = namespaceNode?.Name.ToString();
+			var hasFlags = FilterFlagsAttribute(enumDeclarationSyntax.AttributeLists, compilation);
+
+			string underlineType;
+			if (enumSymbol.EnumUnderlyingType == null)
+				underlineType = "System.Int32";
+			else if (enumSymbol.EnumUnderlyingType.ContainingNamespace == null)
+				underlineType = enumSymbol.EnumUnderlyingType.MetadataName;
+			else
+				underlineType = $"{enumSymbol.EnumUnderlyingType.ContainingNamespace}.{enumSymbol.EnumUnderlyingType.MetadataName}";
+
+			enumsToGenerate.Add(new EnumInfo(@namespace, enumName, null, hasFlags, underlineType, members));
 		}
 
 		return enumsToGenerate;
 	}
 
-	private static string GenerateExtensionClass(List<EnumToGenerate> enumsToGenerate)
+	private static BaseNamespaceDeclarationSyntax? GetNameSpaceSyntax(EnumDeclarationSyntax enumDeclaration)
+	{
+		SyntaxNode? parentNode = enumDeclaration.Parent;
+		while (parentNode != null)
+		{
+			if (parentNode is BaseNamespaceDeclarationSyntax namespaceDeclaration)
+				return namespaceDeclaration;
+
+			parentNode = parentNode.Parent;
+		}
+		return parentNode as NamespaceDeclarationSyntax;
+	}
+
+	private static bool FilterFlagsAttribute(in SyntaxList<AttributeListSyntax> attributeList, Compilation compilation)
+	{
+		for (int index = 0; index < attributeList.Count; index++)
+		{
+			AttributeListSyntax attributeListItem = attributeList[index];
+			if (FilterFlagsAttribute(attributeListItem, compilation))
+				return true;
+		}
+		return false;
+	}
+
+	private static bool FilterFlagsAttribute(AttributeListSyntax x, Compilation compilation)
+	{
+		for (int index = 0; index < x.Attributes.Count; index++)
+		{
+			AttributeSyntax attribute = x.Attributes[index];
+			//if (FilterFlagsAttribute(syntax))
+			var semanticModel = compilation.GetSemanticModel(attribute.SyntaxTree);
+			var symbol = semanticModel.GetSymbolInfo(attribute).Symbol;
+			var type = symbol?.ContainingType;
+			if(attribute.Name.ToFullString() == typeof(FlagsAttribute).FullName)
+				return true;
+		}
+		return false;
+	}
+
+	//private static bool FilterFlagsAttribute(AttributeSyntax y)
+	//{
+	//	return y.Name.ToFullString() == "Flags";
+	//}
+
+	private static string GenerateExtensionClass(List<EnumInfo> enums)
 	{
 		var sb = new StringBuilder();
-		sb.Append(@"
-namespace EnumsSourceGen.EnumGenerators
-{
-    public static partial class EnumExtensions
-    {");
-		foreach(var enumToGenerate in enumsToGenerate)
+		foreach(var enumInfo in enums)
 		{
 			sb.Append(@"
-                public static string ToStringFast(this ").Append(enumToGenerate.Name).Append(@" value)
-                    => value switch
-                    {");
-			foreach (var member in enumToGenerate.Values)
+namespace ").Append(enumInfo.Namespace).Append(@"
+{
+	public static partial class ").Append(enumInfo.Name).Append(@"Extensions
+	{");
+			sb.Append(@"
+		public static string ToName(this ").Append(enumInfo.FullName).Append(@" value)
+		{
+			switch(value)
+			{");
+			foreach (var member in enumInfo.Values)
 			{
 				sb.Append(@"
-                ").Append(enumToGenerate.Name).Append('.').Append(member)
-					.Append(" => nameof(")
-					.Append(enumToGenerate.Name).Append('.').Append(member).Append("),");
+				case ").Append(enumInfo.FullName).Append('.').Append(member.Name).Append(@": return """).Append(member.Name).Append(@""";");
 			}
-
 			sb.Append(@"
-                    _ => value.ToString(),
-                };
-");
+				default: return value.ToString();
+			}
 		}
-    
-		sb.Append(@"
-    }
-}");
-
-		return sb.ToString();
+		public static ").Append(enumInfo.UnderlineTypeFullName).Append(" ToValue(this ").Append(enumInfo.FullName).Append(@" value)
+		{
+			switch(value)
+			{");
+			foreach (var member in enumInfo.Values)
+			{
+				sb.Append(@"
+				case ").Append(enumInfo.FullName).Append('.').Append(member.Name).Append(": return ").Append(member.Value?.ToString()).Append(';');
+			}
+			sb.Append(@"
+				default: return (").Append(enumInfo.UnderlineTypeFullName).Append(@")value;
+			}
+		}
 	}
-}
+}"
+			);
+		}
 
-public readonly struct EnumToGenerate
-{
-	public readonly string Name;
-	public readonly List<string> Values;
-
-	public EnumToGenerate(string name, List<string> values)
-	{
-		Name   = name;
-		Values = values;
+		var str = sb.ToString();
+		return str;
 	}
 }
