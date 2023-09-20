@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "EnumsSourceGen": {
+      "commandName": "Project"
+    },
+    "SourceGenDebug": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\SourceGenTestsApp\\SourceGenTestsApp.csproj"
+    }
+  }
+}
