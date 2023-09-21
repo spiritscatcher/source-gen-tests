@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 
 namespace EnumsSourceGen
 {
-	public readonly struct EnumValueInfo
+	public sealed class EnumValueInfo
 	{
 		public readonly string Name;
 
@@ -11,15 +10,18 @@ namespace EnumsSourceGen
 
 		public readonly object? Value;
 
+		public readonly string ValueAsString;
+
 		public EnumValueInfo(string name, List<AttributeInfo> attributes, object? value)
 		{
-			Name       = name;
+			Name = name;
 			Attributes = attributes;
-			Value      = value;
+			Value = value;
+			ValueAsString = value?.ToString() ?? "";
 		}
 	}
 
-	public readonly struct AttributeInfo
+	public sealed class AttributeInfo
 	{
 		public readonly string FullName;
 		public readonly List<AttributeParameterInfo> Parameters;
@@ -31,7 +33,7 @@ namespace EnumsSourceGen
 		}
 	}
 
-	public readonly struct AttributeParameterInfo
+	public sealed class AttributeParameterInfo
 	{
 		public readonly string Name;
 		public readonly string Value;
