@@ -22,9 +22,10 @@ namespace SourceGenTestsApp4._8
 		Two = 2,
 	}
 	[EnumOptimized]
-	public enum TestEnumUShort : long
+	public enum TestEnumUShort : byte
 	{
 		One = 1,
 		Two = 2,
+		Three = 3,
 	}
 }

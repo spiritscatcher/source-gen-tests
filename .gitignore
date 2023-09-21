@@ -385,3 +385,6 @@ MigrationBackup/
 # End of https://www.gitignore.io/api/visualstudio,visualstudiocode
 
 */App_Data/Logs/
+
+### JetBrains Rider ###
+.idea/*
