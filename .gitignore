@@ -43,16 +43,7 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 bld/
-*/**/[Bb]in/*
-!*/**/[Bb]in/
-*/**/[Bb]in/[Rr]elease/*
-!*/**/[Bb]in/[Rr]elease/
-!*/**/[Bb]in/[Rr]elease/\!Install.bat
-!*/**/[Bb]in/[Rr]elease/\!restart.bat
-!*/**/[Bb]in/[Rr]elease/\!start.bat
-!*/**/[Bb]in/[Rr]elease/\!stop.bat
-!*/**/[Bb]in/[Rr]elease/\!Uninstall.bat
-!*/**/[Bb]in/[Rr]elease/InstallUtil.exe
+[Bb]in/
 [Oo]bj/
 [Ll]og/
 
@@ -383,8 +374,6 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/visualstudio,visualstudiocode
-
-*/App_Data/Logs/
 
 ### JetBrains Rider ###
 .idea/*
