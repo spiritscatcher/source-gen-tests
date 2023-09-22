@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnumsSourceGen.Attributes",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenTestsApp4.8", "SourceGenTestsApp4.8\SourceGenTestsApp4.8.csproj", "{AE2CB858-A997-4B8D-AA7F-2316B4D4665D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenTests.Enums", "SourceGenTests.Enums\SourceGenTests.Enums.csproj", "{53118D48-A72D-47EA-8E9C-B2DB6206992E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{AE2CB858-A997-4B8D-AA7F-2316B4D4665D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE2CB858-A997-4B8D-AA7F-2316B4D4665D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE2CB858-A997-4B8D-AA7F-2316B4D4665D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53118D48-A72D-47EA-8E9C-B2DB6206992E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53118D48-A72D-47EA-8E9C-B2DB6206992E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53118D48-A72D-47EA-8E9C-B2DB6206992E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53118D48-A72D-47EA-8E9C-B2DB6206992E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

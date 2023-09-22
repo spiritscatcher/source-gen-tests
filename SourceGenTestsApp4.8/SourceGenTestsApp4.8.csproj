@@ -50,13 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EnumsSourceGen.Attributes\EnumsSourceGen.Attributes.csproj">
-      <Project>{6f3d0e66-f4b9-4a1b-ab41-76fb5bb8e2f5}</Project>
-      <Name>EnumsSourceGen.Attributes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\EnumsSourceGen\EnumsSourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false">
-      <Project>{93d8edbb-88af-4a12-87cd-59f487f70a8e}</Project>
-      <Name>EnumsSourceGen</Name>
+    <ProjectReference Include="..\SourceGenTests.Enums\SourceGenTests.Enums.csproj">
+      <Project>{53118d48-a72d-47ea-8e9c-b2db6206992e}</Project>
+      <Name>SourceGenTests.Enums</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
